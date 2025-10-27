@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 // SISTEMA DE GESTION DE PEDIDOS COMIDA RAPIDA !!
@@ -7,11 +8,11 @@ import java.util.Scanner;
 public class Main {
     private static ArrayList<Producto> productosDB = getProductos(); // Ingresa los primeros productos del sistema
     private static Scanner entrada = new Scanner(System.in);
+    private static ArrayList<Orden> ordenesDB= new ArrayList(); // Inicializo el listado de pedidos
 
     public static void main(String[] args) {
         // INICIALIZACION DE VARIABLES DE PARTE LOGICA
         boolean estadoPrograma = true;  // si esta true, corre el programa
-        ArrayList<Orden> ordenesDB= new ArrayList(); // Inicializo el listado de pedidos
         //INICIALIZACION DE VARIABLES PARA INPUT
         int inputUsuario;
 
@@ -34,9 +35,9 @@ public class Main {
                 case 1 -> agregarproducto();
                 case 2 -> listarProductos(productosDB);
                 case 3 -> buscarProductoPorNombre(productosDB);
-//                case 4 -> editarProducto(productosDB);
-//                case 5 -> borrarProducto(productosDB);
-//                case 6 -> System.out.println("Funcionalida en progreso...");
+                case 4 -> eliminarProducto(productosDB);
+                case 5 -> crearPedido(productosDB);
+                case 6 -> listarPedidos(ordenesDB);
                 case 7 -> {
                     System.out.println("Gracias por usar la app!");
                     estadoPrograma=false;
@@ -84,7 +85,6 @@ public class Main {
     }
 
     public static void agregarproducto(){
-        Producto newProd;
         System.out.println("""
         Ingrese el nombre del nuevo producto: 
         1) Alimenticio
@@ -155,17 +155,6 @@ public class Main {
         pausa();
     }
 
-    public static void pausa() {
-        System.out.println("Pulse ENTER para continuar...");
-        entrada = new Scanner(System.in);
-        entrada.nextLine();
-        for (int i = 0; i < 20; ++i) {
-            System.out.println();
-        }
-        // TODO: limpiar la pantalla de la consola
-        System.out.print("\033[H\033[2J");
-    }
-
     public static void buscarProductoPorNombre(ArrayList<Producto> productos){
         ArrayList<Producto> productosEncontrados = new ArrayList<>();
 
@@ -185,11 +174,131 @@ public class Main {
              listarProductos(productosEncontrados);
     }
 
+    public static void eliminarProducto(ArrayList<Producto> productos){
+        System.out.println("Ingrese el id del producto que le gustaria eliminar: ");
+
+        int prodBusqueda= entrada.nextInt();
+        boolean seEncontro = false;
+
+        for (Producto producto : productos){
+            if (producto.getId() == prodBusqueda){
+                productos.remove(producto);
+                seEncontro=true;
+                System.out.println("Producto a eliminarse: " + producto.getNombre() + " \nProducto eliminado con exito ");
+                break;
+            }
+        }
+
+        if (!seEncontro)
+            System.out.println("No se encontro el producto con este ID");
+
+        pausa();
+    }
+
+    public static void crearPedido(ArrayList<Producto> productos){
+        Orden nuevaOrden = new Orden();
+        boolean corriendoPedido = true;
+
+        while(corriendoPedido) {
+            System.out.println("NUEVA ORDEN\n1)Agregar un producto\n2)Eliminar un producto \n3)Listar Productos\n4)Precio Total\n5)Aceptar Orden\n6)Volver al menu");
+            int entradaOrden = entrada.nextInt();
+
+            switch (entradaOrden) {
+                case 1 -> {
+                    Producto nuevoProd = obtenerProductoPorId(productos);
+                    if (nuevoProd != null) {
+                        nuevaOrden.agregarProducto(nuevoProd);
+                        System.out.println("Producto agregado con exito: " + nuevoProd.getNombre());
+                    } else
+                        System.out.println("No se pudo agregar este producto");
+                }
+                case 2 -> {
+
+                    eliminarProducto(nuevaOrden.getProductos());
+                }
+                case 3 -> {
+                    listarProductos(nuevaOrden.getProductos());
+                }
+                case 4 -> {
+                    System.out.println("El precio total del pedido es : $" + nuevaOrden.getPrecioTotal());
+                }
+                case 5 -> {
+                    if (nuevaOrden.getCantidadDeProductos() <= 0) {
+                        System.out.println("No agregaste productos a tu orden");
+                    } else {
+                        System.out.println("Agregamos tu orden a la base de datos de bases, MUCHAS GRACIAS POR TU COMPRA");
+                        ordenesDB.add(nuevaOrden);
+                        corriendoPedido = false;
+                    }
+                }
+                case 6 -> {
+                    corriendoPedido = false;
+                }
+                default -> System.out.println("Opción incorrecta, intente de nuevo");
+            }
+        }
+        pausa();
+
+
+
+    }
+
+    public static void listarPedidos(ArrayList<Orden> ordenes){
+        System.out.println("========================================");
+        System.out.println("            LISTA DE ORDENES            ");
+        System.out.println("========================================");
+
+        if (ordenes == null || ordenes.isEmpty()) {
+            System.out.println("⚠️  No hay ordenes para mostrar.");
+        } else {
+            System.out.printf("| %-3s | %-15s | %-12s | %n",
+                    "ID", "CantProductos", "Precio" );
+            System.out.println("----------------------------------------");
+
+            for (Orden orden : ordenes) {
+                System.out.printf("| %3d | %-15s | $%11.2f | %n",
+                        orden.getId(),
+                        orden.getCantidadDeProductos(),
+                        orden.getPrecioTotal());
+
+            }
+        }
+
+        System.out.println("========================================");
+        pausa();
+    }
+
+    // METODOS AUXILIARES
+    private static void pausa() {
+        System.out.println("Pulse ENTER para continuar...");
+        entrada = new Scanner(System.in);
+        entrada.nextLine();
+        for (int i = 0; i < 20; ++i) {
+            System.out.println();
+        }
+        // TODO: limpiar la pantalla de la consola
+        System.out.print("\033[H\033[2J");
+    }
+
     private static boolean EstaIncluido(Producto prod, String busqueda){
         String busquedaFormateada = busqueda.toLowerCase();
         String prodNombreFormateado = prod.getNombre().toLowerCase();
 
         return prodNombreFormateado.equals(busquedaFormateada);
 
+    }
+
+    public static Producto obtenerProductoPorId(List<Producto> productos) {
+        System.out.println("Ingrese el id del producto: ");
+        int idBusqueda = entrada.nextInt();
+
+        for (Producto producto : productos) {
+            if (producto.getId() == idBusqueda) {
+                return producto;
+            }
+        }
+
+        System.out.println("No pudimos encontrar el producto con el id: " + idBusqueda);
+        return null; // el null representa que no encontramos el producto
     }
 }

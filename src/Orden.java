@@ -1,22 +1,26 @@
 import java.util.ArrayList;
 
 public class Orden {
+    private int id;
     ArrayList<Producto> productos;
-    int cantidadDeProductos;
+    protected static int  nextId = 1;
+
 
     Orden(){
         productos= new ArrayList<>();
-        cantidadDeProductos = 0;
+        id = nextId;
+        nextId++;
     }
 
     public void agregarProducto(Producto producto){
         productos.add(producto);
-        cantidadDeProductos++;
     }
 
-    public ArrayList<Producto> getProductos() {
-        return productos;
-    }
+    public ArrayList<Producto> getProductos() { return productos;}
+
+    public int getId() { return id; }
+
+    public int getCantidadDeProductos() { return productos.size(); }
 
     public double getPrecioTotal(){
         double precioTotal = 0;
