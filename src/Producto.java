@@ -2,25 +2,27 @@ abstract class Producto {
     private int id;
     private String nombre;
     private double precio;
+    int stock;
     protected static int  nextId = 1;
 
 
-    Producto(String nombre, double precio) {
-        nextId++;
+    Producto(String nombre, double precio, int stock) {
         this.nombre=nombre;
         this.precio= precio;
         this.id = nextId;
+        this.stock = stock;
+        nextId++;
     }
 
     public int getId() {
-        return id;
+        return this.id;
     }
 
     public String getNombre() {
-        return nombre;
+        return this.nombre;
     }
 
-    public double getPrecio() {
-        return precio;
-    }
+    public int getStock() { return this.stock; }
+
+    public double getPrecio() {return this.precio; }
 }
